@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dip"
+                android:textStyle="bold|italic"
+                android:text="@string/date" />
+            <TextView
+                android:id="@+id/tv_current_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dip"
+                android:textStyle="bold|italic"
+                android:text="@string/verse_to_read" />
+            <TextView
+                android:id="@+id/tv_verse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold"
+                android:maxLines="3"/>
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dip"
+                android:textStyle="bold|italic"
+                android:text="@string/read_date" />
+            <TextView
+                android:id="@+id/tv_read_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/et_read_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold"
+                android:visibility="gone"/>
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:padding="10dip"
+                android:textStyle="bold|italic"
+                android:text="@string/notes" />
+            <TextView
+                android:id="@+id/tv_notes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold"
+                android:maxWidth="200dp" />
+            <EditText
+                android:id="@+id/et_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:maxLines="5"
+                android:maxWidth="100dp"/>
+        </TableRow>
+        <TableRow>
+            <LinearLayout
+                android:layout_column="1">
+                <Button
+                    android:id="@+id/btn_cancel_daily"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:text="@string/cancel"/>
+                <Button
+                    android:id="@+id/btn_save_daily"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:text="@string/save"/>
+            </LinearLayout>
+        </TableRow>
+    </TableLayout>
+
+</LinearLayout>
