@@ -12,10 +12,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.maryann.dbrg.R;
+import com.maryann.dbrg.util.DateUtil;
 
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 
 /**
@@ -26,9 +28,8 @@ import java.util.HashSet;
 public class CalendarCustomView extends LinearLayout {
 
     private static final int DAYS_COUNT = 42;
-    private static final String MONTH_YEAR_FORMAT = "MMMM yyyy";
 
-    private LocalDate currentDay = LocalDate.now();
+    private LocalDate currentDay = DateUtil.CURRENT_DATE;
 
     private CalendarEventHandler calendarEventHandler;
     private HashSet<LocalDate> missedDates;
@@ -136,7 +137,7 @@ public class CalendarCustomView extends LinearLayout {
         grid.setAdapter(new CalendarAdapter(getContext(), dateList, missedDates, scheduledDates, readDates));
 
         // update title
-        txtDate.setText(currentDay.toString(MONTH_YEAR_FORMAT));
+        txtDate.setText(currentDay.toString(DateUtil.MONTH_YEAR_FORMAT));
     }
 
     private void initDesign() {

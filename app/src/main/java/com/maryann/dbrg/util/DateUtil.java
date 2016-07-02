@@ -1,6 +1,8 @@
 package com.maryann.dbrg.util;
 
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -11,8 +13,22 @@ import java.util.Date;
 public class DateUtil {
 
     public final static String DATE_FORMAT = "MMMM dd, yyyy";
-    public final static LocalDate CURRENT_DATE = LocalDate.now();
-    public final static Calendar CURRENT_CALENDAR = Calendar.getInstance();
+    public final static String MONTH_YEAR_FORMAT = "MMMM yyyy";
+    public final static LocalDate CURRENT_DATE = /*LocalDate.now();*/ getCurrentDate();
+    public final static Calendar CURRENT_CALENDAR = /*Calendar.getInstance();*/ getCurrentCalendar();
+
+    public static LocalDate getCurrentDate() {
+        return LocalDate.parse("Jan 1 2017",
+                DateTimeFormat.forPattern("MMM d yyyy"));
+    }
+
+    public static Calendar getCurrentCalendar() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2017);
+        calendar.set(Calendar.MONTH, 0);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        return calendar;
+    }
 
     public static boolean isLeapYear(LocalDate date) {
         return date.year().toInterval().toDuration().getStandardDays() > 365;

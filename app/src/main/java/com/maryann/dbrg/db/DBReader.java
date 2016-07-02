@@ -96,6 +96,32 @@ public class DBReader extends SQLiteOpenHelper {
                 DBContract.DailyBibleGuide._ID + " = ?", new String[]{String.valueOf(bibleDailyReadingGuide.getId())});
     }
 
+    public List<Integer> getIterationList() {
+        SQLiteDatabase db = null;
+        Cursor res = null;
+        List<Integer> iterationList = new ArrayList<>();
+        try {
+            db = this.getReadableDatabase();
+            res = db.query(
+                    true, DBContract.DailyBibleGuide.TABLE_NAME,
+                    new String[] { DBContract.DailyBibleGuide.COLUMN_ITERATION },
+                    null, null, DBContract.DailyBibleGuide.COLUMN_ITERATION, null,
+                    DBContract.DailyBibleGuide.COLUMN_ITERATION + " DESC", null);
+
+            if (res != null) {
+                res.moveToFirst();
+                while (!res.isAfterLast()) {
+                    iterationList.add(res.getInt(res.getColumnIndex(DBContract.DailyBibleGuide.COLUMN_ITERATION)));
+                    res.moveToNext();
+                }
+            }
+
+        } finally {
+            close(db, res);
+        }
+        return iterationList;
+    }
+
     public BibleDailyReadingGuide getDailyReadingGuide(Date date) {
         SQLiteDatabase db = null;
         Cursor res = null;

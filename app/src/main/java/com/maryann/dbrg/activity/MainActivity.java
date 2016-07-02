@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
                             currentCalendar.get(Calendar.MONTH),
                             currentCalendar.get(Calendar.DAY_OF_MONTH));
 
-                    datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis() - 1000);
+                    datePickerDialog.getDatePicker().setMaxDate(DateUtil.CURRENT_CALENDAR.getTimeInMillis());
                     datePickerDialog.show();
                 }
             });
@@ -294,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                         currentCalendar.get(Calendar.MONTH),
                         currentCalendar.get(Calendar.DAY_OF_MONTH));
 
-                datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis() - 1000);
+                datePickerDialog.getDatePicker().setMaxDate(DateUtil.CURRENT_CALENDAR.getTimeInMillis());
                 datePickerDialog.show();
             }
         });

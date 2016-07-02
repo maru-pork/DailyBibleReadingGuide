@@ -24,6 +24,21 @@ public class DailyBibleGuideService {
         this.dbReader = dbReader;
     }
 
+    public List<String> getIterationList(Integer currentIteration) {
+        List<Integer> iterationList = dbReader.getIterationList();
+
+        List<String> iterations = new ArrayList<>();
+        for (Integer iteration : iterationList) {
+            StringBuilder iterationStr = new StringBuilder(String.valueOf(iteration));
+            if (currentIteration.equals(iteration)) {
+                iterationStr.append(" (current)");
+            }
+
+            iterations.add(iterationStr.toString());
+        }
+        return iterations;
+    }
+
     public ResponseWrapper<BibleDailyReadingGuide> getDailyReadingGuide(Date date) {
         BibleDailyReadingGuide guide = dbReader.getDailyReadingGuide(date);
         return new ResponseWrapper<>(guide);

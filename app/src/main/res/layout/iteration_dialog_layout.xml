@@ -24,6 +24,14 @@
                 android:textStyle="bold"
                 android:textAlignment="center"
                 android:enabled="false"/>
+            <Spinner
+                android:id="@+id/sp_iteration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dip"
+                android:textStyle="bold"
+                android:textAlignment="center"
+                android:visibility="gone" />
         </TableRow>
         <TableRow>
             <TextView
