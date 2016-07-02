@@ -11,7 +11,9 @@ import org.joda.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Rufo on 5/22/2016.
@@ -24,24 +26,25 @@ public class DailyBibleGuideService {
         this.dbReader = dbReader;
     }
 
-    public List<String> getIterationList(Integer currentIteration) {
-        List<Integer> iterationList = dbReader.getIterationList();
-
-        List<String> iterations = new ArrayList<>();
-        for (Integer iteration : iterationList) {
+    public ResponseWrapper<Map<String, Integer>> getIterationMap(Integer currentIteration) {
+        Map<String, Integer> iterationMap = new HashMap<>();
+        for (Integer iteration : dbReader.getIterationList()) {
             StringBuilder iterationStr = new StringBuilder(String.valueOf(iteration));
             if (currentIteration.equals(iteration)) {
                 iterationStr.append(" (current)");
             }
-
-            iterations.add(iterationStr.toString());
+            iterationMap.put(iterationStr.toString(), iteration);
         }
-        return iterations;
+        return new ResponseWrapper<>(iterationMap);
     }
 
     public ResponseWrapper<BibleDailyReadingGuide> getDailyReadingGuide(Date date) {
         BibleDailyReadingGuide guide = dbReader.getDailyReadingGuide(date);
         return new ResponseWrapper<>(guide);
+    }
+
+    public ResponseWrapper<List<BibleDailyReadingGuide>> getGuideListByIteration(int iteration) {
+        return new ResponseWrapper<>(dbReader.getGuideListByIteration(iteration));
     }
 
     public ResponseWrapper<List<BibleDailyReadingGuide>> validateNewIteration(Calendar currentCalendar) {
@@ -115,8 +118,6 @@ public class DailyBibleGuideService {
         return response;
     }
 
-    public ResponseWrapper<List<BibleDailyReadingGuide>> getGuideListByIteration(int iteration) {
-        return new ResponseWrapper<>(dbReader.getGuideListByIteration(iteration));
-    }
+
 
 }

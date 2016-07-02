@@ -14,9 +14,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,10 +36,12 @@ import com.maryann.dbrg.view.CalendarEventHandler;
 
 import org.joda.time.LocalDate;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Rufo on 5/22/2016.
@@ -89,13 +94,13 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
                 }
             });
-            BibleDailyReadingGuide guide = dbService.getDailyReadingGuide(DateUtil.CURRENT_DATE.toDate()).getEntity();
-            if (guide == null) {
+            BibleDailyReadingGuide currentDayGuide = dbService.getDailyReadingGuide(DateUtil.CURRENT_DATE.toDate()).getEntity();
+            if (currentDayGuide == null) {
                 dialog.setTitle(getString(R.string.new_iteration));
                 displayNewIterationDialog(dialog);
             } else {
                 dialog.setTitle(getString(R.string.view_iteration));
-                displayViewIterationDialog(guide, dialog);
+                displayViewIterationDialog(currentDayGuide, dialog);
             }
 
             dialog.show();
@@ -361,27 +366,61 @@ public class MainActivity extends AppCompatActivity {
         return endDate;
     }
 
-    private void displayViewIterationDialog(final BibleDailyReadingGuide bibleDailyReadingGuide, final Dialog dialog) {
+    private void displayViewIterationDialog(final BibleDailyReadingGuide currentDayGuide, final Dialog dialog) {
+        // initialize components
         final EditText etIteration = (EditText) dialog.findViewById(R.id.et_iteration);
+        final Spinner spIteration = (Spinner) dialog.findViewById(R.id.sp_iteration);
         final EditText etStartDate = (EditText) dialog.findViewById(R.id.et_start_date);
         final EditText etEndDate = (EditText) dialog.findViewById(R.id.et_end_date);
-        EditText etIterationCount = (EditText) dialog.findViewById(R.id.et_iteration_count);
+        final EditText etIterationCount = (EditText) dialog.findViewById(R.id.et_iteration_count);
         Button btnRemove = (Button) dialog.findViewById(R.id.btn_remove);
 
+        // setUp visibility
+        etIteration.setVisibility(View.GONE);
+        spIteration.setVisibility(View.VISIBLE);
         btnRemove.setVisibility(View.VISIBLE);
+
+        // initialize data from database
+        final Map<String, Integer> iterationMap = dbService.getIterationMap(currentDayGuide.getIteration()).getEntity();
+
+        // setUp components data display
+        List<String> iterationList = new ArrayList<>(iterationMap.keySet());
+        String[] spinnerArray = new String[iterationMap.size()];
+        iterationList.toArray(spinnerArray);
+        spIteration.setAdapter(new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_dropdown_item, spinnerArray));
+        setUpComponentsViewIterationDialog(currentDayGuide.getIteration(), etStartDate, etEndDate, etIterationCount);
+
+        // setUp listener
+        spIteration.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                setUpComponentsViewIterationDialog(iterationMap.get((String) parent.getItemAtPosition(position)),
+                        etStartDate, etEndDate, etIterationCount);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         btnRemove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new AlertDialog.Builder(MainActivity.this)
-                        .setMessage(getString(R.string.confirm_remove))
+                        .setMessage(getString(R.string.confirm_remove, spIteration.getSelectedItem().toString()))
                         .setCancelable(false)
                         .setPositiveButton(getString(R.string.remove), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogIn, int which) {
                                 dialog.dismiss();
-                                ResponseWrapper<BibleDailyReadingGuide> responseWrapper = dbService.deleteDailyReadingGuide(bibleDailyReadingGuide.getIteration());
+                                final Integer selectedIteration = iterationMap.get(spIteration.getSelectedItem().toString());
+                                ResponseWrapper<BibleDailyReadingGuide> responseWrapper = dbService.deleteDailyReadingGuide(selectedIteration);
                                 if (responseWrapper.getErrorMessages().isEmpty()) {
-                                    Toast.makeText(MainActivity.this, getString(R.string.success_remove_iteration, bibleDailyReadingGuide.getIteration()), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this,
+                                            getString(R.string.success_remove_iteration, selectedIteration),
+                                            Toast.LENGTH_SHORT).show();
+
                                 } else {
                                     StringBuilder errorMessage = new StringBuilder();
                                     for (String error : responseWrapper.getErrorMessages()) {
@@ -395,18 +434,15 @@ public class MainActivity extends AppCompatActivity {
                         })
                         .setNegativeButton(getString(R.string.cancel), null)
                         .show();
-
             }
         });
+    }
 
-        List<BibleDailyReadingGuide> list = dbService.getGuideListByIteration(bibleDailyReadingGuide.getIteration()).getEntity();
-        etIteration.setText(String.valueOf(bibleDailyReadingGuide.getIteration()));
-        etStartDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, list.get(0).getScheduledDate()));
-        etEndDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, list.get(list.size()-1).getScheduledDate()));
-
+    private void setUpComponentsViewIterationDialog(Integer selectedIteration, EditText etStartDate, EditText etEndDate, EditText etIterationCount) {
+        List<BibleDailyReadingGuide> guides = dbService.getGuideListByIteration(selectedIteration).getEntity();
         Integer missedCount = 0;
         Integer readCount = 0;
-        for (BibleDailyReadingGuide guide : list) {
+        for (BibleDailyReadingGuide guide : guides) {
             if (guide.getMissed()) {
                 missedCount++;
             }
@@ -415,8 +451,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        etIterationCount.setText(getString(R.string.format_iteration, readCount, missedCount, list.size()));
+        etStartDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, guides.get(0).getScheduledDate()));
+        etEndDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, guides.get(guides.size()-1).getScheduledDate()));
+        etIterationCount.setText(getString(R.string.format_iteration, readCount, missedCount, guides.size()));
     }
-
 
 }
