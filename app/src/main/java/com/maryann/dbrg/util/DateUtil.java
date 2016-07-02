@@ -2,7 +2,6 @@ package com.maryann.dbrg.util;
 
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -14,15 +13,17 @@ public class DateUtil {
 
     public final static String DATE_FORMAT = "MMMM dd, yyyy";
     public final static String MONTH_YEAR_FORMAT = "MMMM yyyy";
-    public final static LocalDate CURRENT_DATE = /*LocalDate.now();*/ getCurrentDate();
-    public final static Calendar CURRENT_CALENDAR = /*Calendar.getInstance();*/ getCurrentCalendar();
+    public final static LocalDate CURRENT_DATE = LocalDate.now();;
+    public final static Calendar CURRENT_CALENDAR = Calendar.getInstance();;
 
     public static LocalDate getCurrentDate() {
+        // for testing purposes only
         return LocalDate.parse("Jan 1 2017",
                 DateTimeFormat.forPattern("MMM d yyyy"));
     }
 
     public static Calendar getCurrentCalendar() {
+        // for testing purposes only
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2017);
         calendar.set(Calendar.MONTH, 0);
