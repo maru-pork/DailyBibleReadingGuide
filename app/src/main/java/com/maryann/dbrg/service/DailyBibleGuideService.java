@@ -3,6 +3,7 @@ package com.maryann.dbrg.service;
 import com.maryann.dbrg.core.BibleVerseCollection;
 import com.maryann.dbrg.db.DBReader;
 import com.maryann.dbrg.model.BibleDailyReadingGuide;
+import com.maryann.dbrg.model.IterationModel;
 import com.maryann.dbrg.model.ResponseWrapper;
 import com.maryann.dbrg.util.DateUtil;
 
@@ -26,21 +27,16 @@ public class DailyBibleGuideService {
         this.dbReader = dbReader;
     }
 
-    public ResponseWrapper<Map<String, Integer>> getIterationMap(Integer currentIteration) {
-        Map<String, Integer> iterationMap = new HashMap<>();
+    public ResponseWrapper<List<IterationModel>> getIterations(Integer currentIteration) {
+        List<IterationModel> iterationModels = new ArrayList<>();
         for (Integer iteration : dbReader.getIterationList()) {
-            StringBuilder iterationStr = new StringBuilder(String.valueOf(iteration));
-            if (currentIteration.equals(iteration)) {
-                iterationStr.append(" (current)");
-            }
-            iterationMap.put(iterationStr.toString(), iteration);
+            iterationModels.add(new IterationModel(iteration, currentIteration));
         }
-        return new ResponseWrapper<>(iterationMap);
+        return new ResponseWrapper<>(iterationModels);
     }
 
     public ResponseWrapper<BibleDailyReadingGuide> getDailyReadingGuide(Date date) {
-        BibleDailyReadingGuide guide = dbReader.getDailyReadingGuide(date);
-        return new ResponseWrapper<>(guide);
+        return new ResponseWrapper<>(dbReader.getDailyReadingGuide(date));
     }
 
     public ResponseWrapper<List<BibleDailyReadingGuide>> getGuideListByIteration(int iteration) {

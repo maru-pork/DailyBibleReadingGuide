@@ -28,6 +28,7 @@ import com.maryann.dbrg.core.BibleVerseCollection;
 import com.maryann.dbrg.core.CreateGuidesAsyncTask;
 import com.maryann.dbrg.db.DBReader;
 import com.maryann.dbrg.model.BibleDailyReadingGuide;
+import com.maryann.dbrg.model.IterationModel;
 import com.maryann.dbrg.model.ResponseWrapper;
 import com.maryann.dbrg.service.DailyBibleGuideService;
 import com.maryann.dbrg.util.DateUtil;
@@ -381,22 +382,19 @@ public class MainActivity extends AppCompatActivity {
         btnRemove.setVisibility(View.VISIBLE);
 
         // initialize data from database
-        final Map<String, Integer> iterationMap = dbService.getIterationMap(currentDayGuide.getIteration()).getEntity();
+        final List<IterationModel> iterationModels = dbService.getIterations(currentDayGuide.getIteration()).getEntity();
 
         // setUp components data display
-        List<String> iterationList = new ArrayList<>(iterationMap.keySet());
-        String[] spinnerArray = new String[iterationMap.size()];
-        iterationList.toArray(spinnerArray);
         spIteration.setAdapter(new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_dropdown_item, spinnerArray));
+                this, android.R.layout.simple_spinner_dropdown_item, iterationModels));
         setUpComponentsViewIterationDialog(currentDayGuide.getIteration(), etStartDate, etEndDate, etIterationCount);
 
         // setUp listener
         spIteration.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                setUpComponentsViewIterationDialog(iterationMap.get((String) parent.getItemAtPosition(position)),
-                        etStartDate, etEndDate, etIterationCount);
+                IterationModel selectedIterationModel = (IterationModel) parent.getSelectedItem();
+                setUpComponentsViewIterationDialog(selectedIterationModel.getIteration(),etStartDate, etEndDate, etIterationCount);
             }
 
             @Override
@@ -407,18 +405,18 @@ public class MainActivity extends AppCompatActivity {
         btnRemove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final IterationModel selectedIterationModel = (IterationModel) spIteration.getSelectedItem();
                 new AlertDialog.Builder(MainActivity.this)
-                        .setMessage(getString(R.string.confirm_remove, spIteration.getSelectedItem().toString()))
+                        .setMessage(getString(R.string.confirm_remove, selectedIterationModel))
                         .setCancelable(false)
                         .setPositiveButton(getString(R.string.remove), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogIn, int which) {
                                 dialog.dismiss();
-                                final Integer selectedIteration = iterationMap.get(spIteration.getSelectedItem().toString());
-                                ResponseWrapper<BibleDailyReadingGuide> responseWrapper = dbService.deleteDailyReadingGuide(selectedIteration);
+                                ResponseWrapper<BibleDailyReadingGuide> responseWrapper = dbService.deleteDailyReadingGuide(selectedIterationModel.getIteration());
                                 if (responseWrapper.getErrorMessages().isEmpty()) {
                                     Toast.makeText(MainActivity.this,
-                                            getString(R.string.success_remove_iteration, selectedIteration),
+                                            getString(R.string.success_remove_iteration, selectedIterationModel.getIteration()),
                                             Toast.LENGTH_SHORT).show();
 
                                 } else {
