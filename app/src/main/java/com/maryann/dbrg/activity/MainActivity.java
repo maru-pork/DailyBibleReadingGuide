@@ -174,10 +174,12 @@ public class MainActivity extends AppCompatActivity {
         if (bibleDailyReadingGuide != null){
             final Calendar currentCalendar = DateUtil.CURRENT_CALENDAR;
 
+            // initialize components
             final Dialog dialog = new Dialog(this);
             dialog.setContentView(R.layout.daily_verse_layout);
             dialog.setCancelable(false);
             dialog.setTitle(getString(R.string.mark_as_read));
+            dialog.show();
 
             TextView tvCurrentDate = (TextView) dialog.findViewById(R.id.tv_current_date);
             TextView tvVerse = (TextView) dialog.findViewById(R.id.tv_verse);
@@ -188,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
             Button btnSaveDaily = (Button) dialog.findViewById(R.id.btn_save_daily);
             Button btnCancel = (Button) dialog.findViewById(R.id.btn_cancel_daily);
 
+            // setUp visibility
             tvReadDate.setVisibility(View.GONE);
             etReadDate.setVisibility(View.VISIBLE);
             tvNotes.setVisibility(View.GONE);
@@ -195,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
             btnSaveDaily.setVisibility(View.VISIBLE);
             btnCancel.setVisibility(View.VISIBLE);
 
+            // setUp components data display
             tvCurrentDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, bibleDailyReadingGuide.getScheduledDate()));
             String[] verse = bibleDailyReadingGuide.getVerse().split(";");
             tvVerse.setText(getString(R.string.format_verse, verse[0], verse[1], verse[2]));
@@ -202,9 +206,10 @@ public class MainActivity extends AppCompatActivity {
             etReadDate.setText(readDate == null ?
                     DateFormat.format(DateUtil.DATE_FORMAT, currentCalendar.getTime())
                     : DateFormat.format(DateUtil.DATE_FORMAT, readDate));
+            etReadDate.setInputType(InputType.TYPE_NULL);
             etNotes.setText(bibleDailyReadingGuide.getNotes());
 
-            etReadDate.setInputType(InputType.TYPE_NULL);
+            // setUp listener
             etReadDate.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -227,7 +232,6 @@ public class MainActivity extends AppCompatActivity {
                     datePickerDialog.show();
                 }
             });
-
             btnSaveDaily.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -252,7 +256,6 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
                 }
             });
-
             btnCancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -260,26 +263,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            dialog.show();
         } else {
             Toast.makeText(MainActivity.this, getString(R.string.warning_no_iteration), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void displayNewIterationDialog(final Dialog dialog) {
-        final Calendar currentCalendar = DateUtil.CURRENT_CALENDAR;
+        final Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.set(Calendar.YEAR, DateUtil.CURRENT_CALENDAR.get(Calendar.YEAR));
+        currentCalendar.set(Calendar.MONTH, DateUtil.CURRENT_CALENDAR.get(Calendar.MONTH));
+        currentCalendar.set(Calendar.DAY_OF_MONTH, DateUtil.CURRENT_CALENDAR.get(Calendar.DAY_OF_MONTH));
 
+        // initialize components
         final EditText etIteration = (EditText) dialog.findViewById(R.id.et_iteration);
         final EditText etStartDate = (EditText) dialog.findViewById(R.id.et_start_date);
         final EditText etEndDate = (EditText) dialog.findViewById(R.id.et_end_date);
         EditText etIterationCount = (EditText) dialog.findViewById(R.id.et_iteration_count);
         Button btnModifyIteration = (Button) dialog.findViewById(R.id.btn_modify_iteration);
 
+        // setUp visibility
+        btnModifyIteration.setVisibility(View.VISIBLE);
+
+        // setUp components data display
         etIteration.setText(String.valueOf(currentCalendar.get(Calendar.YEAR)));
         etStartDate.setEnabled(true);
         etStartDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, currentCalendar.getTime()));
         etStartDate.setInputType(InputType.TYPE_NULL);
+        etEndDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, processEndDate(currentCalendar).toDate()));
+        etIterationCount.setText(String.valueOf(ITERATION_COUNT));
 
+        // setUp listener
         etStartDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -304,16 +317,14 @@ public class MainActivity extends AppCompatActivity {
                 datePickerDialog.show();
             }
         });
-
-        etEndDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, processEndDate(currentCalendar).toDate()));
-        etIterationCount.setText(String.valueOf(ITERATION_COUNT));
-
-        btnModifyIteration.setVisibility(View.VISIBLE);
         btnModifyIteration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ResponseWrapper<List<BibleDailyReadingGuide>> responseWrapper =
-                        dbService.validateNewIteration(currentCalendar);
+                        dbService.validateNewIteration(
+                                DateUtil.convertStringToLocalDate(etStartDate.getText().toString(), DateUtil.DATE_FORMAT),
+                                DateUtil.convertStringToLocalDate(etEndDate.getText().toString(), DateUtil.DATE_FORMAT));
+
                 if (responseWrapper.getErrorMessages().isEmpty()) {
                     final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                     progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);

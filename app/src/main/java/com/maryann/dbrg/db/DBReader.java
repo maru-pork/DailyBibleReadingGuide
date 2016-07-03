@@ -3,6 +3,7 @@ package com.maryann.dbrg.db;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -122,6 +123,13 @@ public class DBReader extends SQLiteOpenHelper {
         return iterationList;
     }
 
+    public Long getDailyReadingGuideCount(Date startDate, Date endDate) {
+        Long count = DatabaseUtils.queryNumEntries(this.getReadableDatabase(), DBContract.DailyBibleGuide.TABLE_NAME,
+                DBContract.DailyBibleGuide.COLUMN_DATE_SCHEDULED + " >= ? AND " + DBContract.DailyBibleGuide.COLUMN_DATE_SCHEDULED + " <= ?",
+                new String[]{String.valueOf(startDate.getTime()), String.valueOf(endDate.getTime())});
+        return count;
+    }
+
     public BibleDailyReadingGuide getDailyReadingGuide(Date date) {
         SQLiteDatabase db = null;
         Cursor res = null;
@@ -130,7 +138,7 @@ public class DBReader extends SQLiteOpenHelper {
             db = this.getReadableDatabase();
             res = db.rawQuery(
                     "SELECT * FROM " + DBContract.DailyBibleGuide.TABLE_NAME +
-                    " WHERE " + DBContract.DailyBibleGuide.COLUMN_DATE_SCHEDULED + " = " + date.getTime(), null);
+                    " WHERE " + DBContract.DailyBibleGuide.COLUMN_DATE_SCHEDULED + " = ?" , new String[]{String.valueOf(date.getTime())});
             if (res.getCount() > 0) {
                 res.moveToFirst();
                 while (!res.isAfterLast()) {

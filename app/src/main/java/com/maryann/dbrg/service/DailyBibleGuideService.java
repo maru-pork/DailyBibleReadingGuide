@@ -43,10 +43,10 @@ public class DailyBibleGuideService {
         return new ResponseWrapper<>(dbReader.getGuideListByIteration(iteration));
     }
 
-    public ResponseWrapper<List<BibleDailyReadingGuide>> validateNewIteration(Calendar currentCalendar) {
+    public ResponseWrapper<List<BibleDailyReadingGuide>> validateNewIteration(LocalDate startDate, LocalDate endDate) {
         List<String> errorMessages = new ArrayList<>();
-        BibleDailyReadingGuide existingGuide = dbReader.getDailyReadingGuide(currentCalendar.getTime());
-        if (existingGuide != null) {
+        Long existingGuides = dbReader.getDailyReadingGuideCount(startDate.toDate(), endDate.toDate());
+        if (existingGuides != 0) {
             errorMessages.add("There's an existing iteration on the selected start date");
         }
 
