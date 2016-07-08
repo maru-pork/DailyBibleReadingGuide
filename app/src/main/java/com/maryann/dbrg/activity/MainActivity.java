@@ -35,6 +35,7 @@ import com.maryann.dbrg.util.DateUtil;
 import com.maryann.dbrg.view.CalendarCustomView;
 import com.maryann.dbrg.view.CalendarEventHandler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
@@ -172,7 +173,10 @@ public class MainActivity extends AppCompatActivity {
     private void displayDailyReadingDialog(LocalDate date) {
         final BibleDailyReadingGuide bibleDailyReadingGuide = dbService.getDailyReadingGuide(date.toDate()).getEntity();
         if (bibleDailyReadingGuide != null){
-            final Calendar currentCalendar = DateUtil.CURRENT_CALENDAR;
+            final Calendar currentCalendar = Calendar.getInstance();
+            currentCalendar.set(Calendar.YEAR, DateUtil.CURRENT_CALENDAR.get(Calendar.YEAR));
+            currentCalendar.set(Calendar.MONTH, DateUtil.CURRENT_CALENDAR.get(Calendar.MONTH));
+            currentCalendar.set(Calendar.DAY_OF_MONTH, DateUtil.CURRENT_CALENDAR.get(Calendar.DAY_OF_MONTH));
 
             // initialize components
             final Dialog dialog = new Dialog(this);
@@ -213,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
             etReadDate.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    DatePickerDialog datePickerDialog = new DatePickerDialog(MainActivity.this,
+                    final DatePickerDialog datePickerDialog = new DatePickerDialog(MainActivity.this,
                             new DatePickerDialog.OnDateSetListener() {
                                 @Override
                                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -228,14 +232,23 @@ public class MainActivity extends AppCompatActivity {
                             currentCalendar.get(Calendar.MONTH),
                             currentCalendar.get(Calendar.DAY_OF_MONTH));
 
-                    datePickerDialog.getDatePicker().setMaxDate(DateUtil.CURRENT_CALENDAR.getTimeInMillis());
+                    datePickerDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Clear", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (which == DialogInterface.BUTTON_NEGATIVE) {
+                                datePickerDialog.cancel();
+                                etReadDate.setText("");
+                            }
+                        }
+                    });
                     datePickerDialog.show();
                 }
             });
             btnSaveDaily.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    bibleDailyReadingGuide.setReadDate(currentCalendar.getTime());
+                    bibleDailyReadingGuide.setReadDate(StringUtils.isEmpty(etReadDate.getText()) ? null :
+                            DateUtil.convertStringToLocalDate(etReadDate.getText().toString(), DateUtil.DATE_FORMAT).toDate());
                     bibleDailyReadingGuide.setNotes(etNotes.getText().toString());
                     ResponseWrapper<BibleDailyReadingGuide> responseWrapper =
                             dbService.updateBibleDailyReadingGuide(bibleDailyReadingGuide);

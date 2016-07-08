@@ -96,17 +96,25 @@ public class DailyBibleGuideService {
             errorMessages.add("Scheduled Date is required.");
         }
 
-        if (bibleDailyReadingGuide.getReadDate() == null) {
-            errorMessages.add("Read Date is required.");
+        if (errorMessages.isEmpty()) {
+            if (dbReader.getDailyReadingGuide(bibleDailyReadingGuide.getScheduledDate())
+                    .getReadDate() == null) {
+                if (bibleDailyReadingGuide.getReadDate() == null) {
+                    errorMessages.add("Read Date is required.");
+                }
+            }
         }
 
         if (errorMessages.isEmpty()) {
-            LocalDate scheduledDate = DateUtil.convertDateToLocalDate(bibleDailyReadingGuide.getScheduledDate());
-            LocalDate readDate = DateUtil.convertDateToLocalDate(bibleDailyReadingGuide.getReadDate());
-            bibleDailyReadingGuide.setMissed(readDate.isAfter(scheduledDate));
+            if (bibleDailyReadingGuide.getReadDate() != null) {
+                LocalDate scheduledDate = DateUtil.convertDateToLocalDate(bibleDailyReadingGuide.getScheduledDate());
+                LocalDate readDate = DateUtil.convertDateToLocalDate(bibleDailyReadingGuide.getReadDate());
+                bibleDailyReadingGuide.setMissed(readDate.isAfter(scheduledDate));
+                dbReader.updateBibleDailyReadingGuide(bibleDailyReadingGuide);
+            } else {
+                dbReader.clearBibleDailyReadingGuide(bibleDailyReadingGuide);
+            }
         }
-
-        dbReader.updateBibleDailyReadingGuide(bibleDailyReadingGuide);
 
         ResponseWrapper<BibleDailyReadingGuide> response =
                 new ResponseWrapper<>(bibleDailyReadingGuide);

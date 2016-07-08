@@ -85,6 +85,18 @@ public class DBReader extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void clearBibleDailyReadingGuide(BibleDailyReadingGuide bibleDailyReadingGuide) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.putNull(DBContract.DailyBibleGuide.COLUMN_DATE_READ);
+        values.putNull(DBContract.DailyBibleGuide.COLUMN_IS_MISSED);
+        values.put(DBContract.DailyBibleGuide.COLUMN_NOTES, bibleDailyReadingGuide.getNotes());
+
+        db.update(DBContract.DailyBibleGuide.TABLE_NAME, values,
+                DBContract.DailyBibleGuide._ID + " = ?", new String[]{String.valueOf(bibleDailyReadingGuide.getId())});
+    }
+
     public void updateBibleDailyReadingGuide(BibleDailyReadingGuide bibleDailyReadingGuide) {
         SQLiteDatabase db = this.getWritableDatabase();
 
