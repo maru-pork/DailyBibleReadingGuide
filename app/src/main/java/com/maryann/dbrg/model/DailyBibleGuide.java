@@ -3,26 +3,17 @@ package com.maryann.dbrg.model;
 import java.util.Date;
 
 /**
- * Created by Rufo on 5/22/2016.
+ * Created by Rufo on 9/19/2016.
  */
-public class BibleDailyReadingGuide {
+public class DailyBibleGuide {
 
     private Long id;
     private String verse;
     private Date scheduledDate;
     private Date readDate;
-    private Boolean isMissed;
+    private Integer missed;
     private Integer iteration;
     private String notes;
-
-    public BibleDailyReadingGuide() {
-
-    }
-
-    public BibleDailyReadingGuide(Date scheduledDate, String verse) {
-        this.scheduledDate = scheduledDate;
-        this.verse = verse;
-    }
 
     public Long getId() {
         return id;
@@ -56,12 +47,16 @@ public class BibleDailyReadingGuide {
         this.readDate = readDate;
     }
 
-    public Boolean getMissed() {
-        return isMissed;
+    public Integer getMissed() {
+        return missed;
     }
 
-    public void setMissed(Boolean missed) {
-        isMissed = missed;
+    public void setMissed(Integer missed) {
+        this.missed = missed;
+    }
+
+    public Boolean getMissedIndicator() {
+        return missed == 1;
     }
 
     public Integer getIteration() {

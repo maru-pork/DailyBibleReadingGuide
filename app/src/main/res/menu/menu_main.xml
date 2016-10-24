@@ -8,6 +8,11 @@
         android:title="@string/about"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_export"
+        android:orderInCategory="100"
+        android:title="@string/export"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_iteration"
         android:orderInCategory="100"
         android:icon="@drawable/calendar_icon"

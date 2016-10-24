@@ -8,6 +8,7 @@
     <string name="fri">FRI</string>
     <string name="sat">SAT</string>
     <string name="about">About</string>
+    <string name="export">Export</string>
     <string name="format_verse">%1$s\n%2$s\n%3$s</string>
     <string name="format_iteration">(R:%1$d)(M:%2$d)/(%3$d)</string>
     <string name="iteration">Iteration</string>

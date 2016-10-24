@@ -19,7 +19,7 @@ public class DateUtil {
     private static LocalDate getCurrentDate() {
         return LocalDate.now();
         
-        // for testing purposes only
+        // for testing purposes onlyss
         /*return convertStringToLocalDate("January 01, 2017", DATE_FORMAT);*/
     }
 
@@ -42,12 +42,22 @@ public class DateUtil {
         return calendar.getActualMaximum(Calendar.DAY_OF_YEAR) > 365;
     }
 
-    public static LocalDate convertDateToLocalDate(Date date) {
-        return new LocalDate(date);
+    public static Date getDateIfExists(Long dateInLong) {
+        if (dateInLong == null || dateInLong == 0)
+            return null;
+
+        return new Date(dateInLong);
     }
 
-    public static Date convertLocalDateToDate(LocalDate localDate) {
-        return localDate.toDate();
+    public static Date getDateOrThrow(Long dateInLong) throws Exception {
+        if (dateInLong == null || dateInLong == 0)
+            throw  new Exception("Value(dateInLong) is required.");
+
+        return getDateIfExists(dateInLong);
+    }
+
+    public static LocalDate convertDateToLocalDate(Date date) {
+        return new LocalDate(date);
     }
 
     public static LocalDate convertStringToLocalDate(String date, String pattern) {

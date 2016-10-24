@@ -1,10 +1,9 @@
-package com.maryann.dbrg.core;
-
-import com.maryann.dbrg.model.BibleDailyReadingGuide;
+package com.maryann.dbrg.util;
 
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -12,6 +11,7 @@ import java.util.List;
  *
  * Source: A Pocketful of Promises For Women, Lighthouse Inspirational Books &amp; Gifts, Inc.
  */
+@Deprecated
 public class BibleVerseCollection {
 
     private static final String EMPTY_SPACE = " ";
@@ -784,5 +784,22 @@ public class BibleVerseCollection {
 
     public Integer getVerseCount() {
         return verseCount;
+    }
+
+    private class BibleDailyReadingGuide {
+        private String verse;
+        private Date scheduledDate;
+
+        public BibleDailyReadingGuide(Date scheduledDate, String verse) {
+            if (scheduledDate == null || verse == null)
+                throw new IllegalArgumentException("scheduled date nor verse cannot be null");
+            this.scheduledDate = scheduledDate;
+            this.verse = verse;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s,%tD", verse, scheduledDate);
+        }
     }
 }

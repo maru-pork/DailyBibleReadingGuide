@@ -7,7 +7,9 @@ import android.provider.BaseColumns;
  */
 public class DBContract {
 
-    public static abstract class DailyBibleGuide implements BaseColumns {
+    private DBContract() {}
+
+    public static abstract class DailyBible implements BaseColumns {
         public static final String TABLE_NAME = "daily_bible";
         public static final String COLUMN_VERSE = "verse";
         public static final String COLUMN_DATE_SCHEDULED = "scheduled_date";

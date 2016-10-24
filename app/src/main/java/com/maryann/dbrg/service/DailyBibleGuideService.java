@@ -1,127 +1,249 @@
 package com.maryann.dbrg.service;
 
-import com.maryann.dbrg.core.BibleVerseCollection;
-import com.maryann.dbrg.db.DBReader;
-import com.maryann.dbrg.model.BibleDailyReadingGuide;
-import com.maryann.dbrg.model.IterationModel;
-import com.maryann.dbrg.model.ResponseWrapper;
+import android.content.Context;
+import android.os.Environment;
+import android.text.format.DateFormat;
+
+import com.maryann.dbrg.core.ResultWrapper;
+import com.maryann.dbrg.model.DailyBibleGuide;
+import com.maryann.dbrg.model.Iteration;
+import com.maryann.dbrg.model.SpIterationModel;
 import com.maryann.dbrg.util.DateUtil;
 
 import org.joda.time.LocalDate;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+
+import static com.maryann.dbrg.util.DateUtil.convertDateToLocalDate;
+import static com.maryann.dbrg.util.VersePropertiesUtil.constructBibleGuideList;
 
 /**
  * Created by Rufo on 5/22/2016.
  */
 public class DailyBibleGuideService {
 
-    private DBReader dbReader;
-
-    public DailyBibleGuideService(DBReader dbReader) {
-        this.dbReader = dbReader;
+    private DailyBibleGuideRepository repository;
+    private Context context;
+    public DailyBibleGuideService(DailyBibleGuideRepository repository, Context context) {
+        this.repository = repository;
+        this.context = context;
     }
 
-    public ResponseWrapper<List<IterationModel>> getIterations(Integer currentIteration) {
-        List<IterationModel> iterationModels = new ArrayList<>();
-        for (Integer iteration : dbReader.getIterationList()) {
-            iterationModels.add(new IterationModel(iteration, currentIteration));
-        }
-        return new ResponseWrapper<>(iterationModels);
-    }
+    public ResultWrapper<List<SpIterationModel>> getIterations() {
+        List<SpIterationModel> spIterations = new ArrayList<>();
 
-    public ResponseWrapper<BibleDailyReadingGuide> getDailyReadingGuide(Date date) {
-        return new ResponseWrapper<>(dbReader.getDailyReadingGuide(date));
-    }
-
-    public ResponseWrapper<List<BibleDailyReadingGuide>> getGuideListByIteration(int iteration) {
-        return new ResponseWrapper<>(dbReader.getGuideListByIteration(iteration));
-    }
-
-    public ResponseWrapper<List<BibleDailyReadingGuide>> validateNewIteration(LocalDate startDate, LocalDate endDate) {
+        ResultWrapper<List<SpIterationModel>> resultWrapper = new ResultWrapper<>(spIterations);
         List<String> errorMessages = new ArrayList<>();
-        Long existingGuides = dbReader.getDailyReadingGuideCount(startDate.toDate(), endDate.toDate());
-        if (existingGuides != 0) {
-            errorMessages.add("There's an existing iteration on the selected start date");
-        }
-
-        ResponseWrapper<List<BibleDailyReadingGuide>> response =
-                new ResponseWrapper<List<BibleDailyReadingGuide>>(new ArrayList<BibleDailyReadingGuide>());
-        response.setErrorMessages(errorMessages);
-
-        return response;
-    }
-
-    public void createBibleDailyReadingGuide(Calendar currentCalendar) {
-        List<BibleDailyReadingGuide> guides = new BibleVerseCollection().getVerseList();
-
-        LocalDate startDate = LocalDate.fromCalendarFields(currentCalendar);
-        for (BibleDailyReadingGuide guide : guides) {
-            guide.setIteration(currentCalendar.get(Calendar.YEAR));
-            guide.setScheduledDate(startDate.toDate());
-            startDate = startDate.plusDays(1);
-            if (DateUtil.isLeapYear(startDate)) {
-                if (startDate.compareTo(new LocalDate(startDate.getYear(), 2, 29)) == 0) {
-                    // add one day to skip February 29
-                    startDate = startDate.plusDays(1);
-                }
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            Integer currentIteration = repository.getIteration(LocalDate.now().toDate());
+            List<Integer> iterations = repository.getIterations();
+            for (Integer iteration : iterations) {
+                spIterations.add(new SpIterationModel(iteration, currentIteration));
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
         }
-        dbReader.createBibleDailyReadingGuide(guides);
+        return resultWrapper;
     }
 
-    public ResponseWrapper<BibleDailyReadingGuide> deleteDailyReadingGuide(int iteration) {
+    public ResultWrapper<DailyBibleGuide> getDailyBibleGuide(Date scheduledDate) {
+        ResultWrapper<DailyBibleGuide> resultWrapper = new ResultWrapper<>();
         List<String> errorMessages = new ArrayList<>();
-        dbReader.deleteDailyReadingGuide(iteration);
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            if (scheduledDate == null)
+                throw new IllegalArgumentException("Scheduled date cannot be null");
 
-        if (!dbReader.getGuideListByIteration(iteration).isEmpty()) {
-            errorMessages.add("Error on removing iteration.");
+            DailyBibleGuide guide = repository.getDailyBibleGuide(scheduledDate);
+            resultWrapper.setEntity(guide);
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
         }
-
-        ResponseWrapper<BibleDailyReadingGuide> response =
-                new ResponseWrapper<>(new BibleDailyReadingGuide());
-        response.setErrorMessages(errorMessages);
-        return response;
+        return resultWrapper;
     }
 
-    public ResponseWrapper<BibleDailyReadingGuide> updateBibleDailyReadingGuide(BibleDailyReadingGuide bibleDailyReadingGuide) {
+    public ResultWrapper<List<DailyBibleGuide>> getGuidesByIteration(int iteration) {
+        List<DailyBibleGuide> guides = new ArrayList<>();
+
+        ResultWrapper<List<DailyBibleGuide>> resultWrapper = new ResultWrapper<>(guides);
         List<String> errorMessages = new ArrayList<>();
-
-        if (bibleDailyReadingGuide.getScheduledDate() == null) {
-            errorMessages.add("Scheduled Date is required.");
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            guides.addAll(repository.getAllDailyBibleGuides(iteration));
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
         }
+        return resultWrapper;
+    }
 
-        if (errorMessages.isEmpty()) {
-            if (dbReader.getDailyReadingGuide(bibleDailyReadingGuide.getScheduledDate())
-                    .getReadDate() == null) {
-                if (bibleDailyReadingGuide.getReadDate() == null) {
-                    errorMessages.add("Read Date is required.");
-                }
+    public ResultWrapper<DailyBibleGuide> validateIfIterationExists(LocalDate startDate, LocalDate endDate) {
+        ResultWrapper<DailyBibleGuide> resultWrapper = new ResultWrapper<>();
+        List<String> errorMessages = new ArrayList<>();
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            if (startDate == null || endDate == null)
+                throw new IllegalArgumentException("start date nor end date cannot be null");
+
+            long guidesCount = repository.getGuidesCount(startDate.toDate(), endDate.toDate());
+            if (guidesCount != 0)
+                errorMessages.add("There's an existing iteration on the selected start date");
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
+        }
+        return resultWrapper;
+    }
+
+    public ResultWrapper<List<DailyBibleGuide>> createDailyBibleGuide(LocalDate startDate) {
+        ResultWrapper<List<DailyBibleGuide>> resultWrapper = new ResultWrapper<>();
+        List<String> errorMessages = new ArrayList<>();
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            if (startDate == null)
+                throw new IllegalArgumentException("Start Date cannot be null");
+
+            List<DailyBibleGuide> guides =
+                    constructBibleGuideList(context, startDate);
+            if (guides.isEmpty())
+                throw new IllegalArgumentException("No guides found from properties");
+
+            repository.insertDailyBibleGuide(guides);
+            resultWrapper.setEntity(guides);
+        } catch (IOException e) {
+            e.printStackTrace();
+            errorMessages.add("Error while getting verse.properties file.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
+        }
+        return resultWrapper;
+    }
+
+    public ResultWrapper<DailyBibleGuide> deleteDailyBibleGuide(int iteration) {
+        ResultWrapper<DailyBibleGuide> resultWrapper = new ResultWrapper<>();
+        List<String> errorMessages = new ArrayList<>();
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            repository.deleteDailyBibleGuides(iteration);
+            if (!repository.getAllDailyBibleGuides(iteration).isEmpty()) {
+                errorMessages.add("No guides were deleted.");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
         }
+        return resultWrapper;
+    }
 
-        if (errorMessages.isEmpty()) {
-            if (bibleDailyReadingGuide.getReadDate() != null) {
-                LocalDate scheduledDate = DateUtil.convertDateToLocalDate(bibleDailyReadingGuide.getScheduledDate());
-                LocalDate readDate = DateUtil.convertDateToLocalDate(bibleDailyReadingGuide.getReadDate());
-                bibleDailyReadingGuide.setMissed(readDate.isAfter(scheduledDate));
-                dbReader.updateBibleDailyReadingGuide(bibleDailyReadingGuide);
+    public ResultWrapper<DailyBibleGuide> updateDailyBibleGuide(DailyBibleGuide dailyBibleGuide) {
+        ResultWrapper<DailyBibleGuide> resultWrapper = new ResultWrapper<>();
+        List<String> errorMessages = new ArrayList<>();
+        resultWrapper.setErrorMessages(errorMessages);
+        try {
+            if (dailyBibleGuide.getScheduledDate() == null) {
+                errorMessages.add("Scheduled Date is required.");
+                return resultWrapper;
+            }
+
+            // read date is required only if first time to mark as read
+            DailyBibleGuide guideFrDb = repository.getDailyBibleGuide(dailyBibleGuide.getScheduledDate());
+            if (guideFrDb.getReadDate() == null && dailyBibleGuide.getReadDate() == null) {
+                errorMessages.add("Read Date is required.");
+                return resultWrapper;
+            }
+
+            if (dailyBibleGuide.getReadDate() != null) {
+                LocalDate scheduledDate = DateUtil.convertDateToLocalDate(dailyBibleGuide.getScheduledDate());
+                LocalDate readDate = DateUtil.convertDateToLocalDate(dailyBibleGuide.getReadDate());
+                dailyBibleGuide.setMissed(readDate.isAfter(scheduledDate) ? 1 : 0);
+                repository.updateDailyBibleGuide(dailyBibleGuide);
             } else {
-                dbReader.clearBibleDailyReadingGuide(bibleDailyReadingGuide);
+                repository.clearDailyBibleGuide(dailyBibleGuide);
+            }
+            resultWrapper.setEntity(dailyBibleGuide);
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
+        }
+        return resultWrapper;
+    }
+
+    public ResultWrapper<File> exportGuideToFile(int iteration) {
+        ResultWrapper<File> resultWrapper = new ResultWrapper<>();
+        List<String> errorMessages = new ArrayList<>();
+        resultWrapper.setErrorMessages(errorMessages);
+
+        try {
+            String fileName = "DBRG.csv";
+            File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            File file = new File(root, fileName);
+            FileWriter writer = new FileWriter(file);
+            writer.write(String.format("%s,%s,%s,%s,%s\n", "Iteration", "Verse", "Scheduled", "Read", "Notes"));
+
+            List<DailyBibleGuide> guides = repository.getAllDailyBibleGuides(iteration);
+            for (DailyBibleGuide guide: guides) {
+                String line = String.format("%s,%s,%s,%s,%s\n",
+                        String.valueOf(guide.getIteration()),
+                        guide.getVerse(),
+                        String.valueOf(DateFormat.format("MM/dd/yyyy", guide.getScheduledDate())),
+                        guide.getReadDate() == null ? "-" : String.valueOf(DateFormat.format("MM/dd/yyyy", guide.getReadDate())),
+                        guide.getNotes() == null || guide.getNotes().isEmpty() ? "-" : guide.getNotes());
+                writer.write(line);
+            }
+            writer.flush();
+            writer.close();
+
+            resultWrapper.setEntity(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
+        }
+        return resultWrapper;
+    }
+
+    // TODO add unit test
+    public Iteration constructIterationFromGuides(List<DailyBibleGuide> guides) {
+
+        // overload iteration, overload date
+        HashSet<LocalDate> scheduledDates = new HashSet<>();
+        HashSet<LocalDate> missedDates = new HashSet<>();
+        HashSet<LocalDate> readDates = new HashSet<>();
+        Integer missedCount = 0;
+        Integer readCount = 0;
+
+        for (DailyBibleGuide guide : guides) {
+            LocalDate date = convertDateToLocalDate(guide.getScheduledDate());
+            scheduledDates.add(date);
+            if (guide.getMissedIndicator()) {
+                missedCount++;
+                missedDates.add(date);
+            }
+            if (guide.getReadDate() != null) {
+                readCount++;
+                readDates.add(date);
             }
         }
 
-        ResponseWrapper<BibleDailyReadingGuide> response =
-                new ResponseWrapper<>(bibleDailyReadingGuide);
-        response.setErrorMessages(errorMessages);
-        return response;
+        Iteration iteration = new Iteration();
+        iteration.setIteration(guides.get(0).getIteration());
+        iteration.setStartDate(guides.get(0).getScheduledDate());
+        iteration.setEndDate(guides.get(guides.size()-1).getScheduledDate());
+        iteration.setMissedCount(missedCount);
+        iteration.setReadCount(readCount);
+        iteration.setIterationCount(guides.size());
+        iteration.setMissedDates(missedDates);
+        iteration.setReadDates(readDates);
+        iteration.setScheduledDates(scheduledDates);
+        return iteration;
     }
-
-
-
 }
