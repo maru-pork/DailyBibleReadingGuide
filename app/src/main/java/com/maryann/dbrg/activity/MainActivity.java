@@ -14,6 +14,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.maryann.dbrg.BuildConfig;
 import com.maryann.dbrg.R;
 import com.maryann.dbrg.core.CreateGuidesAsyncTask;
 import com.maryann.dbrg.core.ResultWrapper;
@@ -78,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
                 Dialog dlgAbout = new Dialog(this);
                 dlgAbout.setContentView(R.layout.about_dialog_layout);
                 dlgAbout.setTitle(getString(R.string.about_title));
+                TextView tvVersion = (TextView) dlgAbout.findViewById(R.id.tv_version);
+                tvVersion.setText(getString(R.string.about_version, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME));
+
                 dlgAbout.show();
                 break;
 
