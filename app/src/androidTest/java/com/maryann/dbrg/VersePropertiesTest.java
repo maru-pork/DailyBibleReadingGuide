@@ -109,4 +109,16 @@ public class VersePropertiesTest extends AndroidTestCase {
         assertEquals(expectedStartDate.toDate(), actual.get(0).getScheduledDate());
         assertEquals(expectedEndDate.toDate(), actual.get(actual.size()-1).getScheduledDate());
     }
+
+    public void testLeapYearConstructBibleGuideList() throws IOException  {
+        List<DailyBibleGuide> guidesFromProp = constructBibleGuideList(mContext);
+
+        LocalDate startDate = new LocalDate(2016, 1, 1);
+        List<DailyBibleGuide> guides = constructBibleGuideList(mContext, startDate);
+
+        assertEquals(guidesFromProp.size(), guides.size());
+        for (int i=0; i<365; i++) {
+            assertEquals(guidesFromProp.get(i).getScheduledDate(), guides.get(i).getScheduledDate());
+        }
+    }
 }

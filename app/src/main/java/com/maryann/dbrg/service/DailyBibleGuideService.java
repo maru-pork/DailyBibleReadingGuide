@@ -54,6 +54,15 @@ public class DailyBibleGuideService {
         return resultWrapper;
     }
 
+    public Integer getCurrentIteration() {
+        // return the current iteration if any, else default 0
+        try {
+            return repository.getIteration(LocalDate.now().toDate());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     public ResultWrapper<DailyBibleGuide> getDailyBibleGuide(Date scheduledDate) {
         ResultWrapper<DailyBibleGuide> resultWrapper = new ResultWrapper<>();
         List<String> errorMessages = new ArrayList<>();
@@ -184,7 +193,7 @@ public class DailyBibleGuideService {
         resultWrapper.setErrorMessages(errorMessages);
 
         try {
-            String fileName = "DBRG.csv";
+            String fileName = "DBRG("+ iteration +").csv";
             File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File file = new File(root, fileName);
             FileWriter writer = new FileWriter(file);
@@ -211,39 +220,57 @@ public class DailyBibleGuideService {
         return resultWrapper;
     }
 
-    // TODO add unit test
-    public Iteration constructIterationFromGuides(List<DailyBibleGuide> guides) {
+    public ResultWrapper<Iteration> constructIterationModel(Integer... iteration) {
+        ResultWrapper<Iteration> resultWrapper = new ResultWrapper<>();
+        List<String> errorMessages = new ArrayList<>();
+        resultWrapper.setErrorMessages(errorMessages);
 
-        // overload iteration, overload date
-        HashSet<LocalDate> scheduledDates = new HashSet<>();
-        HashSet<LocalDate> missedDates = new HashSet<>();
-        HashSet<LocalDate> readDates = new HashSet<>();
-        Integer missedCount = 0;
-        Integer readCount = 0;
-
-        for (DailyBibleGuide guide : guides) {
-            LocalDate date = convertDateToLocalDate(guide.getScheduledDate());
-            scheduledDates.add(date);
-            if (guide.getMissedIndicator()) {
-                missedCount++;
-                missedDates.add(date);
-            }
-            if (guide.getReadDate() != null) {
-                readCount++;
-                readDates.add(date);
-            }
+        Integer currentIteration;
+        if (iteration.length == 0) {
+            currentIteration = getCurrentIteration();
+        } else {
+            currentIteration = iteration[0];
         }
 
-        Iteration iteration = new Iteration();
-        iteration.setIteration(guides.get(0).getIteration());
-        iteration.setStartDate(guides.get(0).getScheduledDate());
-        iteration.setEndDate(guides.get(guides.size()-1).getScheduledDate());
-        iteration.setMissedCount(missedCount);
-        iteration.setReadCount(readCount);
-        iteration.setIterationCount(guides.size());
-        iteration.setMissedDates(missedDates);
-        iteration.setReadDates(readDates);
-        iteration.setScheduledDates(scheduledDates);
-        return iteration;
+        Iteration iterationModel = null;
+        try {
+            List<DailyBibleGuide> guides = repository.getAllDailyBibleGuides(currentIteration);
+
+            HashSet<LocalDate> scheduledDates = new HashSet<>();
+            HashSet<LocalDate> missedDates = new HashSet<>();
+            HashSet<LocalDate> readDates = new HashSet<>();
+            Integer missedCount = 0;
+            Integer readCount = 0;
+
+            for (DailyBibleGuide guide : guides) {
+                LocalDate date = convertDateToLocalDate(guide.getScheduledDate());
+                scheduledDates.add(date);
+                if (guide.getMissedIndicator()) {
+                    missedCount++;
+                    missedDates.add(date);
+                }
+                if (guide.getReadDate() != null) {
+                    readCount++;
+                    readDates.add(date);
+                }
+            }
+
+            iterationModel = new Iteration();
+            iterationModel.setIteration(guides.get(0).getIteration());
+            iterationModel.setStartDate(guides.get(0).getScheduledDate());
+            iterationModel.setEndDate(guides.get(guides.size()-1).getScheduledDate());
+            iterationModel.setMissedCount(missedCount);
+            iterationModel.setReadCount(readCount);
+            iterationModel.setIterationCount(guides.size());
+            iterationModel.setMissedDates(missedDates);
+            iterationModel.setReadDates(readDates);
+            iterationModel.setScheduledDates(scheduledDates);
+
+            resultWrapper.setEntity(iterationModel);
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMessages.add(e.getMessage());
+        }
+        return resultWrapper;
     }
 }

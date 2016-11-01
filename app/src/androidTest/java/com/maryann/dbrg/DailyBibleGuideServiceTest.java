@@ -38,6 +38,17 @@ public class DailyBibleGuideServiceTest extends AndroidTestCase {
         assertEquals("Start Date cannot be null", result.getErrorMessages().get(0));
     }
 
+    public void testLeapYearCreateDailyBibleGuide() {
+        LocalDate startDate = new LocalDate(2016, 1, 1);
+        service.createDailyBibleGuide(startDate);
+        assertNull(service.getDailyBibleGuide(new LocalDate(2016, 2, 29).toDate()).getEntity());
+
+        service.deleteDailyBibleGuide(2016);
+        startDate = new LocalDate(2016, 2, 29);
+        service.createDailyBibleGuide(startDate);
+        assertNull(service.getDailyBibleGuide(new LocalDate(2016, 2, 29).toDate()).getEntity());
+    }
+
     public void testGetIterations() {
         LocalDate startDate = new LocalDate(2016, 10, 22); // Oct 22, 2016
         service.createDailyBibleGuide(startDate);
@@ -99,6 +110,15 @@ public class DailyBibleGuideServiceTest extends AndroidTestCase {
 
         ResultWrapper<DailyBibleGuide> resultWrapper = service.deleteDailyBibleGuide(startDate.getYear());
         assertTrue(resultWrapper.getErrorMessages().isEmpty());
+    }
+
+    public void testGetCurrentIteration() {
+        Integer currentIteration = 0;
+        assertEquals(currentIteration, service.getCurrentIteration());
+
+        currentIteration = LocalDate.now().getYear();
+        service.createDailyBibleGuide(LocalDate.now());
+        assertEquals(currentIteration, service.getCurrentIteration());
     }
 
     public void testUpdateDailyBibleGuide() {
@@ -170,5 +190,9 @@ public class DailyBibleGuideServiceTest extends AndroidTestCase {
         assertEquals(missed, guideToMarkAsRead.getMissed().intValue());
         assertEquals(note, guideToMarkAsRead.getNotes());
         assertTrue(guideToMarkAsRead.getMissedIndicator());
+    }
+
+    public void testConstructIterationModel() {
+        // TODO provide implementation
     }
 }

@@ -75,7 +75,7 @@ public class VersePropertiesUtil {
                 if (scheduledDate.compareTo(
                         new LocalDate(startDate.getYear(), 2, 29)) == 0) {
                     // add one day to skip February 29
-                    startDate = startDate.plusDays(1);
+                    scheduledDate = startDate.plusDays(i++);
                 }
             }
             guide.setScheduledDate(scheduledDate.toDate());

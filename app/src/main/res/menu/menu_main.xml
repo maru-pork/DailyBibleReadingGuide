@@ -10,7 +10,7 @@
     <item
         android:id="@+id/action_export"
         android:orderInCategory="100"
-        android:title="@string/export"
+        android:title="@string/iteration"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_iteration"

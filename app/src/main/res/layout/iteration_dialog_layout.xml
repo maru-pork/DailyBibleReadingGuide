@@ -88,22 +88,6 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:drawableLeft="@drawable/view_icon"
-                    android:textAlignment="center"
-                    android:padding="10dip"
-                    android:gravity="left"
-                    android:layout_gravity="center_vertical"
-                    android:visibility="gone"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_column="1"
                 android:layout_gravity="center"
                 android:orientation="horizontal">
@@ -111,21 +95,12 @@
                     android:id="@+id/btn_cancel_iteration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cancel"/>
+                    android:text="@string/close"/>
                 <Button
-                    android:id="@+id/btn_modify_iteration"
+                    android:id="@+id/btn_ok_iteration"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/save"/>
-                <Button
-                    android:id="@+id/btn_remove"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:text="@string/remove"/>
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
-
         </TableRow>
     </TableLayout>
 

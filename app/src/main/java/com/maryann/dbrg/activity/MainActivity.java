@@ -26,6 +26,7 @@ import com.maryann.dbrg.util.DateUtil;
 import com.maryann.dbrg.view.CalendarCustomView;
 import com.maryann.dbrg.view.CalendarEventHandler;
 import com.maryann.dbrg.view.DailyVerseDialog;
+import com.maryann.dbrg.view.IterationDialog;
 import com.maryann.dbrg.view.NewIterationDialog;
 import com.maryann.dbrg.view.ViewIterationDialog;
 
@@ -81,34 +82,14 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.action_iteration:
-                DailyBibleGuide currentGuide = service.getDailyBibleGuide(CURRENT_DATE.toDate()).getEntity();
+                DailyBibleGuide currentGuide = service.getDailyBibleGuide(LocalDate.now().toDate()).getEntity();
                 // if guide exist for current date, display View Iteration Dialog, else display New Iteration Dialog
                 if(currentGuide != null) {
-                    new ViewIterationDialog(this) {
-                        @Override
-                        public void setRemoveOnClickAction(Integer iteration) {
-                            ResultWrapper<DailyBibleGuide> resultWrapper = service.deleteDailyBibleGuide(iteration);
-                            if (!toDisplayErrorMessageIfExists(resultWrapper)) return;
+                    ResultWrapper<Iteration> resultWrapper = service.constructIterationModel();
+                    if (toDisplayErrorMessageIfExists(resultWrapper)){
+                        new ViewIterationDialog(this, resultWrapper.getEntity()).show();
+                    }
 
-                            Toast.makeText(MainActivity.this,
-                                    getString(R.string.success_remove_iteration, iteration),
-                                    Toast.LENGTH_SHORT).show();
-                            initView();
-                        }
-
-                        @Override
-                        public List<SpIterationModel> setUpSpIterations() {
-                            ResultWrapper<List<SpIterationModel>> resultWrapper = service.getIterations();
-                            if(toDisplayErrorMessageIfExists(resultWrapper))
-                                return resultWrapper.getEntity();
-                            return new ArrayList<>();
-                        }
-
-                        @Override
-                        public Iteration setUpIteration(Integer selectedIteration) {
-                            return service.constructIterationFromGuides(service.getGuidesByIteration(selectedIteration).getEntity());
-                        }
-                    }.show();
                 } else {
                     new NewIterationDialog(this) {
                         @Override
@@ -148,11 +129,40 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.action_export:
-                ResultWrapper<File> resultWrapperExpt = service.exportGuideToFile(2016);
-                if (!toDisplayErrorMessageIfExists(resultWrapperExpt)) break;
+                new IterationDialog(this) {
+                    @Override
+                    public void setRemoveOnClickAction(Integer iteration) {
+                        ResultWrapper<DailyBibleGuide> resultWrapper = service.deleteDailyBibleGuide(iteration);
+                        if (!toDisplayErrorMessageIfExists(resultWrapper)) return;
 
-                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(resultWrapperExpt.getEntity())));
-                Toast.makeText(this, "Exporting data to csv file..", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this,
+                                getString(R.string.success_remove_iteration, iteration),
+                                Toast.LENGTH_SHORT).show();
+                        initView();
+                    }
+
+                    @Override
+                    public void setExportOnClickAction(Integer iteration) {
+                        ResultWrapper<File> resultWrapperExpt = service.exportGuideToFile(iteration);
+                        if (!toDisplayErrorMessageIfExists(resultWrapperExpt)) return;
+
+                        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(resultWrapperExpt.getEntity())));
+                        Toast.makeText(MainActivity.this, "Exporting data to csv file..", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public List<SpIterationModel> setUpSpIterations() {
+                        ResultWrapper<List<SpIterationModel>> resultWrapper = service.getIterations();
+                        if(toDisplayErrorMessageIfExists(resultWrapper))
+                            return resultWrapper.getEntity();
+                        return new ArrayList<>();
+                    }
+
+                    @Override
+                    public Iteration setUpIteration(Integer selectedIteration) {
+                        return service.constructIterationModel(selectedIteration).getEntity();
+                    }
+                }.show();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -192,13 +202,17 @@ public class MainActivity extends AppCompatActivity {
         HashSet<LocalDate> missedDates = new HashSet<>();
         HashSet<LocalDate> readDates = new HashSet<>();
 
+        // init only the current iteration on calendar display, disregard the previous iterations if exists
         DailyBibleGuide currentGuide = service.getDailyBibleGuide(CURRENT_DATE.toDate()).getEntity();
-        // add dates to hashSets if currentGuide exist
+
         if(currentGuide != null) {
-            Iteration iteration = service.constructIterationFromGuides(service.getGuidesByIteration(currentGuide.getIteration()).getEntity());
-            scheduledDates.addAll(iteration.getScheduledDates());
-            missedDates.addAll(iteration.getMissedDates());
-            readDates.addAll(iteration.getReadDates());
+            ResultWrapper<Iteration> resultWrapper = service.constructIterationModel(currentGuide.getIteration());
+            if (toDisplayErrorMessageIfExists(resultWrapper)) {
+                // add dates to hashSets if currentGuide exist
+                scheduledDates.addAll(resultWrapper.getEntity().getScheduledDates());
+                missedDates.addAll(resultWrapper.getEntity().getMissedDates());
+                readDates.addAll(resultWrapper.getEntity().getReadDates());
+            }
         }
 
         CalendarCustomView calendarView = (CalendarCustomView) findViewById(R.id.calendar);
@@ -232,7 +246,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // TODO handle implementation
     public <T> boolean toDisplayErrorMessageIfExists(ResultWrapper<T> resultWrapper) {
         if (resultWrapper.getErrorMessages().isEmpty()) {
             return true;

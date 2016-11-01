@@ -57,12 +57,10 @@ public abstract class NewIterationDialog extends Dialog implements View.OnClickL
         etEndDate = (EditText) findViewById(R.id.et_end_date);
         EditText etIterationCount = (EditText) findViewById(R.id.et_iteration_count);
         Button btnCancel = (Button) findViewById(R.id.btn_cancel_iteration);
-        Button btnSave = (Button) findViewById(R.id.btn_modify_iteration);
-
-        // setUp visibility
-        btnSave.setVisibility(View.VISIBLE);
+        Button btnSave = (Button) findViewById(R.id.btn_ok_iteration);
 
         // setUp components data display
+        btnSave.setText(m.getString(R.string.create));
         etIteration.setText(String.valueOf(currentCalendar.get(Calendar.YEAR)));
         etStartDate.setEnabled(true);
         etStartDate.setText(DateFormat.format(DateUtil.DATE_FORMAT, currentCalendar.getTime()));
@@ -102,7 +100,7 @@ public abstract class NewIterationDialog extends Dialog implements View.OnClickL
                 datePickerDialog.show();
                 break;
 
-            case  R.id.btn_modify_iteration:
+            case  R.id.btn_ok_iteration:
                 setSaveOnClickAction(convertStringToLocalDate(etStartDate.getText().toString(), DATE_FORMAT),
                         convertStringToLocalDate(etEndDate.getText().toString(), DATE_FORMAT));
             default:
