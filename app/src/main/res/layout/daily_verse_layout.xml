@@ -6,7 +6,8 @@
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:stretchColumns="1">
         <TableRow>
             <TextView
                 android:layout_width="wrap_content"
@@ -54,8 +55,10 @@
                 android:textStyle="bold" />
             <EditText
                 android:id="@+id/et_read_date"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginRight="30dp"
                 android:padding="10dip"
                 android:textStyle="bold"
                 android:visibility="gone"/>
@@ -79,6 +82,8 @@
                 android:id="@+id/et_notes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginRight="30dp"
                 android:padding="10dip"
                 android:textStyle="bold"
                 android:visibility="gone"
@@ -93,7 +98,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
-                    android:text="@string/cancel"/>
+                    android:text="@string/close"/>
                 <Button
                     android:id="@+id/btn_save_daily"
                     android:layout_width="wrap_content"

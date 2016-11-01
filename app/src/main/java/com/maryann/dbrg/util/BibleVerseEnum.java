@@ -1,8 +1,9 @@
-package com.maryann.dbrg.core;
+package com.maryann.dbrg.util;
 
 /**
  * Created by Rufo on 5/22/2016.
  */
+@Deprecated
 public enum BibleVerseEnum {
     GENESIS("Genesis"),
     EXODUS("Exodus"),

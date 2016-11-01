@@ -1,17 +1,20 @@
-package com.maryann.dbrg.model;
+package com.maryann.dbrg.core;
 
 import java.util.List;
 
 /**
  * Created by Rufo on 5/22/2016.
  */
-public class ResponseWrapper<T> {
+public class ResultWrapper<T> {
 
     private T entity;
     private String successMessage;
     private List<String> errorMessages;
 
-    public ResponseWrapper(T entity) {
+    public ResultWrapper() {
+    }
+
+    public ResultWrapper(T entity) {
         this.entity = entity;
     }
 

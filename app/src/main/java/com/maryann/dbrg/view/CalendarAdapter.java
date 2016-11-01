@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.maryann.dbrg.R;
+import com.maryann.dbrg.util.DateUtil;
 
 import org.joda.time.LocalDate;
 
@@ -45,7 +46,7 @@ public class CalendarAdapter extends ArrayAdapter {
         TextView textView = (TextView)view;
         textView.setTextColor(Color.LTGRAY);
 
-        if (date.isEqual(LocalDate.now())) {
+        if (date.isEqual(DateUtil.CURRENT_DATE)) {
             textView.setTextColor(Color.DKGRAY);
             textView.setBackgroundColor(Color.LTGRAY);
         }
